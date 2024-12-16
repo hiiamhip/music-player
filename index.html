@@ -153,7 +153,7 @@
                 isRepeat: false,
                 isRandom: false,
                 historyIndex: [],
-                playedSongs: [],
+                unplayedSongs: [],
                 songs: [
                     {
                         name: "Hymn For The Weekend",
@@ -244,6 +244,7 @@
                 },
 
                 handleEvents: function () {
+
                     // quay CD khi nhạc phát
                     const cdThumbAnimate = cdThumb.animate(
                         [{ transform: "rotate(360deg)" }],
@@ -297,7 +298,6 @@
                         app.saveHistoryIndex();
                         if (app.isRandom) {
                             app.randomSong();
-                            app.markPlayedSongs();
                         } else {
                             app.nextSong();
                         }
@@ -385,11 +385,15 @@
                     app.historyIndex.push(app.currentIndex);
                 },
 
-                markPlayedSongs: function () {
-                    app.playedSongs.push(app.currentIndex);
-                    if (app.playedSongs.length == app.songs.length) {
-                        app.playedSongs = [];
-                    }
+                initUnplayedSongs: function () {
+                    app.unplayedSongs = app.songs
+                        .map((_, index) => index)
+                        .filter((index) => index != app.currentIndex);
+                    app.unplayedSongs = app.unplayedSongs.filter(indexSong => indexSong != app.currentIndex);
+                },
+
+                updateUnplayedSongs: function() {
+                    app.unplayedSongs = app.unplayedSongs.filter(indexSong => indexSong != app.currentIndex);
                 },
 
                 nextSong: function () {
@@ -402,16 +406,16 @@
 
                 // lấy ra index random mới
                 randomSong: function () {
-                    let newIndex;
-                    do {
-                        newIndex = Math.floor(
-                            Math.random() * this.songs.length
-                        );
-                    } while (app.playedSongs.includes(newIndex));
+                    if (this.unplayedSongs.length == 0) {
+                        this.initUnplayedSongs();
+                    }
+                    const randomIndexUnplayed = Math.floor(
+                         Math.random() * this.unplayedSongs.length
+                       );
+                    const newIndex = app.unplayedSongs[randomIndexUnplayed];
                     app.currentIndex = newIndex;
                     this.loadCurrentSong();
-                    console.log(app.playedSongs);
-                    console.log(app.currentIndex);
+                    this.updateUnplayedSongs();
                 },
 
                 start: function () {
